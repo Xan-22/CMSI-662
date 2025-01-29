@@ -1,6 +1,4 @@
-#include <iostream>
-#include <map>
-#include <string>
+#include "cart.h"
 #include <random>
 #include <sstream>
 #include <iomanip>
@@ -42,28 +40,37 @@ public:
 	std::string get() const { return id; };
 private:
 	std::string generate_uuid4() {
-		// Credit to Copilot for generating most of the code in this method.
+		// Credit to happy_sisyphus on Stackoverflow: https://stackoverflow.com/a/60198074
+		// The alternative to this would be to use an external library like Boost.
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_int_distribution<uint32_t> dis;
-
-		uint32_t data[4];
-		for (auto& d : data) {
-			d = dis(gen);
-		}
+		std::uniform_int_distribution<uint32_t> dis(0, 15); // 0-f
+		std::uniform_int_distribution<uint32_t> encoding_bits(8, 11); // 8-b
 
 		std::stringstream ss;
-		ss << std::hex << std::setfill('0');
-		ss << std::setw(8) << data[0]
-			<< '-' << std::setw(4) << (data[1] >> 16)
-			<< '-' << std::setw(4) << ((data[1] & 0xFFFF) | 0x4000)  // Version 4
-			<< '-' << std::setw(4) << ((data[2] >> 16) & 0x0FFF | 0x8000)  // Variant 1
-			<< '-' << std::setw(4) << (data[2] & 0xFFFF)
-			<< std::setw(8) << data[3];
-
+		int i;
+		ss << std::hex;
+		for (i = 0; i < 8; i++) {
+			ss << dis(gen);
+		}
+		ss << "-";
+		for (i = 0; i < 4; i++) {
+			ss << dis(gen);
+		}
+		ss << "-4";
+		for (i = 0; i < 3; i++) {
+			ss << dis(gen);
+		}
+		ss << "-" << encoding_bits(gen);
+		for (i = 0; i < 3; i++) {
+			ss << dis(gen);
+		}
+		ss << "-";
+		for (i = 0; i < 12; i++) {
+			ss << dis(gen);
+		}
 		return ss.str();
 	}
-
 	std::string id;
 };
 
@@ -112,56 +119,65 @@ private:
 	std::map<ItemName, double> items;
 };
 
-class ShoppingCart {
-public:
-	ShoppingCart(const std::string& owner_id) {
-		this->owner_id = OwnerID(owner_id);
-		CartID cart_id = CartID();
+struct ShoppingCart::ShoppingCartData {
+	OwnerID owner_id;
+	CartID cart_id;
+	std::map<ItemName, Quantity> items;
+};
+
+ShoppingCart::ShoppingCart(const std::string& owner_id) {
+	data = std::make_unique<ShoppingCartData>(OwnerID(owner_id), CartID(), std::map<ItemName, Quantity>());
+}
+ShoppingCart::~ShoppingCart() = default;
+
+// Copy Constructor
+ShoppingCart::ShoppingCart(const ShoppingCart& other) {
+	data = std::make_unique<ShoppingCartData>(other.data->owner_id, other.data->cart_id, other.data->items);
+};
+
+// Move Constructor
+ShoppingCart::ShoppingCart(ShoppingCart&& other) noexcept = default;
+
+// Copy Assignment
+ShoppingCart& ShoppingCart::operator=(const ShoppingCart& other) {
+	data = std::make_unique<ShoppingCartData>(other.data->owner_id, other.data->cart_id, other.data->items);
+	return *this;
+};
+
+// Move Assignment
+ShoppingCart& ShoppingCart::operator=(ShoppingCart&& other) noexcept = default;
+
+std::string ShoppingCart::getId() const { return data->owner_id.get(); }
+std::string ShoppingCart::getCartId() const { return data->cart_id.get(); }
+std::map <std::string, int> ShoppingCart::getItems() const {
+		std::map <std::string, int> copied_items;
+		for (const auto& item : data->items) {
+			copied_items[item.first.get()] = item.second.get();
+		}
+		return copied_items; 
 	}
 
-    std::string getId() const { return owner_id.get(); }
-	std::string getCartId() const { return cart_id.get(); }
-
-    void addItem(const std::string item_name, int amount) {
+void ShoppingCart::addItem(const std::string item_name, int amount) {
 		ItemName item(item_name);
 		Quantity quantity(amount);
-		items[item] = quantity;
+		data->items[item] = quantity;
     }
 
-	void updateItem(const std::string item_name, int amount) {
+void ShoppingCart::updateItem(const std::string item_name, int amount) {
 		ItemName item(item_name);
 		Quantity quantity(amount);
-		items[item] = quantity;
+		data->items[item] = quantity;
 	}
 
-	void removeItem(const std::string item_name) {
+void ShoppingCart::removeItem(const std::string item_name) {
 		ItemName item(item_name);
-		items.erase(item);
+		data->items.erase(item);
 	}
 
-	double getTotalCost() const {
+double ShoppingCart::getTotalCost() const {
 		double total = 0.0;
 		//for (const auto& item : items) {
 		//	total += item.second.get();
 		//}
 		return total;
 	}
-
-
-private:
-	OwnerID owner_id;
-	CartID cart_id;
-	std::map<ItemName, Quantity> items;
-};
-
-int main() {
-	ShoppingCart cart("ABC12345DE-A");
-	try {
-		ShoppingCart cart2("12345DE-A");
-	}
-	catch (const std::invalid_argument& e) {
-		std::cout << "Successfully caught exception: " << e.what() << std::endl;
-	}
-
-    return 0;
-}
