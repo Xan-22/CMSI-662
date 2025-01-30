@@ -3,6 +3,31 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include <utility>
+
+namespace Catalog {
+	static std::map<std::string, double> fetchItems() {
+		// This is where items would be fetched from a database.
+		return {
+			{"apple", 0.5},
+			{"banana", 0.25},
+			{"orange", 0.75},
+			{"grapes", 1.0},
+			{"pineapple", 2.0}
+		};
+	}
+	static std::pair<std::string, double> getItem(const std::string& item) {
+		std::map items = fetchItems();
+		std::string item_str(item);
+		auto iter = items.find(item_str);
+		if (iter != items.end()) {
+			return std::make_pair(iter->first, iter->second);
+		}
+		else {
+			throw std::invalid_argument("Item not found in catalog");
+		}
+	}
+};
 
 class ItemName {
 public:
@@ -19,11 +44,11 @@ class Quantity {
 public:
 	Quantity() : quantity(0) {}
     Quantity(int quantity) {
-		if (quantity < 0) {
-			throw std::invalid_argument("Quantity cannot be negative");
+		if (quantity < 1) {
+			throw std::invalid_argument("Quantity cannot be less than 1");
 		}
-		if (quantity > 999) {
-			throw std::invalid_argument("Quantity cannot be greater than 999");
+		if (quantity > 99) {
+			throw std::invalid_argument("Quantity cannot be greater than 99");
 		}
 		this->quantity = quantity;
 	}
@@ -78,6 +103,9 @@ class OwnerID {
 public:
 	OwnerID() { this->id = ""; }
 	OwnerID(const std::string& id) {
+		if (id.size() > 12) {
+			throw std::invalid_argument("Owner ID must be 12 characters long");
+		}
 		// Must be 3 letters, 5 numbers, 2 letters, a dash, and an A or a Q.
 		std::regex regex("^[A-Z]{3}[0-9]{5}[A-Z]{2}-[AQ]$");
 		if (!std::regex_match(id, regex)) {
@@ -88,35 +116,6 @@ public:
 	std::string get() const { return id; };
 private:
 	std::string id;
-};
-
-class Catalog {
-public:
-	Catalog() {
-		fetchItems();
-	}
-	void fetchItems() {
-		// This is where items would be fetched from a database or API.
-		items = {
-			{ItemName("apple"), 0.5},
-			{ItemName("banana"), 0.25},
-			{ItemName("orange"), 0.75},
-			{ItemName("grapes"), 1.0},
-			{ItemName("pineapple"), 2.0}
-		};
-	}
-	double getItem(const std::string& item) const {
-		ItemName item_name(item);
-		auto it = items.find(item_name);
-		if (it != items.end()) {
-			return (it->first, it->second);
-		}
-		else {
-			throw std::invalid_argument("Item not found in catalog");
-		}
-	}
-private:
-	std::map<ItemName, double> items;
 };
 
 struct ShoppingCart::ShoppingCartData {
@@ -130,21 +129,17 @@ ShoppingCart::ShoppingCart(const std::string& owner_id) {
 }
 ShoppingCart::~ShoppingCart() = default;
 
-// Copy Constructor
 ShoppingCart::ShoppingCart(const ShoppingCart& other) {
 	data = std::make_unique<ShoppingCartData>(other.data->owner_id, other.data->cart_id, other.data->items);
 };
 
-// Move Constructor
 ShoppingCart::ShoppingCart(ShoppingCart&& other) noexcept = default;
 
-// Copy Assignment
 ShoppingCart& ShoppingCart::operator=(const ShoppingCart& other) {
 	data = std::make_unique<ShoppingCartData>(other.data->owner_id, other.data->cart_id, other.data->items);
 	return *this;
 };
 
-// Move Assignment
 ShoppingCart& ShoppingCart::operator=(ShoppingCart&& other) noexcept = default;
 
 std::string ShoppingCart::getId() const { return data->owner_id.get(); }
@@ -160,24 +155,38 @@ std::map <std::string, int> ShoppingCart::getItems() const {
 void ShoppingCart::addItem(const std::string item_name, int amount) {
 		ItemName item(item_name);
 		Quantity quantity(amount);
-		data->items[item] = quantity;
+		// Only add an item if it exists in the catalog
+		std::ignore = Catalog::getItem(item_name);
+		// If the item already exists, add the quantity to the existing quantity.
+		if (data->items.find(item) != data->items.end()) {
+			data->items[item] = Quantity(data->items[item].get() + quantity.get());
+		}
+		else {
+			data->items[item] = quantity;
+		}
     }
 
 void ShoppingCart::updateItem(const std::string item_name, int amount) {
 		ItemName item(item_name);
 		Quantity quantity(amount);
+		if (data->items.find(item) == data->items.end()) {
+			throw std::invalid_argument("Cannot update an item not present in cart");
+		}
 		data->items[item] = quantity;
 	}
 
 void ShoppingCart::removeItem(const std::string item_name) {
 		ItemName item(item_name);
+		if (data->items.find(item) == data->items.end()) {
+			throw std::invalid_argument("Cannot remove an item not present in cart");
+		}
 		data->items.erase(item);
 	}
 
 double ShoppingCart::getTotalCost() const {
 		double total = 0.0;
-		//for (const auto& item : items) {
-		//	total += item.second.get();
-		//}
+		for (const auto& item : data->items) {
+			total += (double)item.second.get() * Catalog::getItem(item.first.get()).second;
+		}
 		return total;
 	}

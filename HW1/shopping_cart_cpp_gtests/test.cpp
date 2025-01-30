@@ -9,14 +9,7 @@ TEST(ShoppingCartTest, DestructorIsLinked) {
     SUCCEED();
 }
 
-TEST(ShoppingCartTest, AddItem) {
-    ShoppingCart cart("ABC12345DE-A");
-    cart.addItem("apple", 3);
-    auto items = cart.getItems();
-    ASSERT_EQ(items["apple"], 3);
-}
-
-TEST(ShoppingCartTest, NonEnglishID) {
+TEST(ShoppingCartTest, NonEnglishID) { // Not currently passing
 	ShoppingCart cart("アイウ12345エオ-A");
     ASSERT_THROW(ShoppingCart cart("ABC12345DE-ア"), std::invalid_argument);
 }
@@ -39,10 +32,181 @@ TEST(ShoppingCartTest, CartIDIsUUID4) {
     ASSERT_TRUE(std::regex_match(cart_id, uuid4_pattern));
 }
 
+TEST(ShoppingCartTest, AddItem) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("apple", 3);
+    auto items = cart.getItems();
+    ASSERT_EQ(items["apple"], 3);
+    ASSERT_EQ(items.size(), 1);
+}
+
+TEST(ShoppingCartTest, AddExistingItem) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("apple", 3);
+    cart.addItem("banana", 5);
+    auto items = cart.getItems();
+    ASSERT_EQ(items["apple"], 3);
+    ASSERT_EQ(items["banana"], 5);
+	cart.addItem("apple", 4);
+    items = cart.getItems();
+    ASSERT_EQ(items["apple"], 7);
+    ASSERT_EQ(items["banana"], 5);
+    ASSERT_EQ(items.size(), 2);
+}
+
+TEST(ShoppingCartTest, AddBadItem) {
+    ShoppingCart cart("ABC12345DE-A");
+    try {
+        cart.addItem("zzz", 3);
+    }
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Item not found in catalog");
+    }
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 0);
+}
+
+TEST(ShoppingCartTest, AddBadQuantity) {
+    ShoppingCart cart("ABC12345DE-A");
+    try {
+        cart.addItem("apple", 10000);
+    }
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Quantity cannot be greater than 99");
+    }
+    try {
+        cart.addItem("apple", -99);
+    }
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Quantity cannot be less than 1");
+    }
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 0);
+}
+
 TEST(ShoppingCartTest, UpdateItem) {
 	ShoppingCart cart("ABC12345DE-A");
 	cart.addItem("apple", 3);
 	cart.updateItem("apple", 5);
 	auto items = cart.getItems();
 	ASSERT_EQ(items["apple"], 5);
+    ASSERT_EQ(items.size(), 1);
+}
+
+TEST(ShoppingCartTest, UpdateMissingItem) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("apple", 3);
+    try {
+		cart.updateItem("banana", 5);
+	}
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Cannot update an item not present in cart");
+    }
+    auto items = cart.getItems();
+    ASSERT_EQ(items["apple"], 3);
+    ASSERT_EQ(items.size(), 1);
+}
+
+TEST(ShoppingCartTest, UpdateBadQuantity) {
+	ShoppingCart cart("ABC12345DE-A");
+	cart.addItem("apple", 3);
+	try {
+		cart.updateItem("apple", 10000);
+	}
+	catch (const std::exception& e)
+	{
+		ASSERT_STREQ(e.what(), "Quantity cannot be greater than 99");
+	}
+	try {
+		cart.updateItem("apple", -99);
+	}
+	catch (const std::exception& e)
+	{
+		ASSERT_STREQ(e.what(), "Quantity cannot be less than 1");
+	}
+	auto items = cart.getItems();
+	ASSERT_EQ(items["apple"], 3);
+    ASSERT_EQ(items.size(), 1);
+}
+
+TEST(ShoppingCartTest, RemoveItem) {
+	ShoppingCart cart("ABC12345DE-A");
+	cart.addItem("apple", 3);
+	cart.removeItem("apple");
+	auto items = cart.getItems();
+	ASSERT_EQ(items.size(), 0);
+}
+
+TEST(ShoppingCartTest, RemoveMissingItem) {
+    ShoppingCart cart("ABC12345DE-A");
+    try {
+        cart.removeItem("apple");
+    }
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Cannot remove an item not present in cart");
+    }
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 0);
+}
+
+TEST(ShoppingCartTest, RemoveItemMissingFromList) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("banana", 3);
+    try {
+		cart.removeItem("apple");
+    }
+	catch (const std::exception& e)
+	{
+		ASSERT_STREQ(e.what(), "Cannot remove an item not present in cart");
+	}
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 1);
+}
+
+TEST(ShoppingCartTest, TotalCost) {
+	ShoppingCart cart("ABC12345DE-A");
+	cart.addItem("apple", 3);
+	cart.addItem("banana", 5);
+	double total = cart.getTotalCost();
+	ASSERT_EQ(total, 3 * 0.5 + 5 * 0.25);
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 2);
+}
+
+TEST(ShoppingCartTest, TotalCostWithManyItems) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("apple", 99);
+    cart.addItem("banana", 99);
+	cart.addItem("orange", 99);
+    double total = cart.getTotalCost();
+    ASSERT_EQ(total, 99 * 0.5 + 99 * 0.25 + 99 * 0.75);
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 3);
+}
+
+TEST(ShoppingCartTest, TotalCostAfterUpdate) {
+	ShoppingCart cart("ABC12345DE-A");
+	cart.addItem("apple", 3);
+	cart.addItem("banana", 5);
+	cart.updateItem("apple", 5);
+	double total = cart.getTotalCost();
+	ASSERT_EQ(total, 5 * 0.5 + 5 * 0.25);
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 2);
+}
+
+TEST(ShoppingCartTest, TotalCostAfterRemoval) {
+    ShoppingCart cart("ABC12345DE-A");
+    cart.addItem("apple", 3);
+    cart.addItem("banana", 5);
+    cart.removeItem("apple");
+    double total = cart.getTotalCost();
+    ASSERT_EQ(total, 5 * 0.25);
+    auto items = cart.getItems();
+    ASSERT_EQ(items.size(), 1);
 }
