@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <regex>
 #include <random>
+#include <iostream>
 
 static void TEST_CopyConstructor() {
     ShoppingCart cart1(L"ABC12345DE-A");
@@ -330,4 +331,6 @@ int main(int argc, char** argv) {
 	TEST_TotalCostWithManyItems();
 	TEST_TotalCostAfterUpdate();
 	TEST_TotalCostAfterRemoval();
+
+    std::cout << "All tests passed!" << std::endl;
 }
