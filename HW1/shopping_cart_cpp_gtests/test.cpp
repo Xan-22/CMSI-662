@@ -64,7 +64,6 @@ TEST(ShoppingCartTest, InvalidOwnerID) {
     ASSERT_THROW(ShoppingCart cart(L"ABC12345DE-Z"), std::invalid_argument);
     ASSERT_THROW(ShoppingCart cart(L"A"), std::invalid_argument);
     ASSERT_THROW(ShoppingCart cart(L"123ABCDE45-A"), std::invalid_argument);
-
 }
 
 TEST(ShoppingCartTest, LargeOwnerID) {
