@@ -50,12 +50,21 @@ TEST(ShoppingCartTest, MoveAssignment) {
 TEST(ShoppingCartTest, NonEnglishID) { // Not currently passing
     ShoppingCart cart(L"アイウ12345エオ-A");
     ASSERT_THROW(ShoppingCart cart(L"ABC12345DE-ア"), std::invalid_argument);
+    ASSERT_THROW(ShoppingCart cart(L"アイウアイウ12345DE-ア"), std::invalid_argument);
 }
 
 TEST(ShoppingCartTest, InvalidOwnerID) {
-    ASSERT_THROW(ShoppingCart cart(L"INVALID_ID"), std::invalid_argument);
+    try {
+		ShoppingCart cart(L"INVALID_ID");
+	}
+    catch (const std::exception& e)
+    {
+        ASSERT_STREQ(e.what(), "Invalid owner ID format");
+    }
     ASSERT_THROW(ShoppingCart cart(L"ABC12345DE-Z"), std::invalid_argument);
     ASSERT_THROW(ShoppingCart cart(L"A"), std::invalid_argument);
+    ASSERT_THROW(ShoppingCart cart(L"123ABCDE45-A"), std::invalid_argument);
+
 }
 
 TEST(ShoppingCartTest, LargeOwnerID) {
