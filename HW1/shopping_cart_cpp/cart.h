@@ -5,14 +5,14 @@
 
 class ShoppingCart {
 public:
-	ShoppingCart(const std::string& owner_id);
+	ShoppingCart(const std::wstring& owner_id);
 	~ShoppingCart(); // Rule of Five
 	ShoppingCart(const ShoppingCart& other);
 	ShoppingCart(ShoppingCart&& other) noexcept;
 	ShoppingCart& operator=(const ShoppingCart& other);
 	ShoppingCart& operator=(ShoppingCart&& other) noexcept;
 
-	std::string getId() const;
+	std::wstring getId() const;
 	std::string getCartId() const;
 	std::map <std::string, int> getItems() const;
 	void addItem(const std::string item_name, int amount);

@@ -101,21 +101,21 @@ private:
 
 class OwnerID {
 public:
-	OwnerID() { this->id = ""; }
-	OwnerID(const std::string& id) {
+	OwnerID() { this->id = L""; }
+	OwnerID(const std::wstring& id) {
 		if (id.size() > 12) {
 			throw std::invalid_argument("Owner ID must be 12 characters long");
 		}
 		// Must be 3 letters, 5 numbers, 2 letters, a dash, and an A or a Q.
-		std::regex regex("^[A-Z]{3}[0-9]{5}[A-Z]{2}-[AQ]$");
-		if (!std::regex_match(id, regex)) {
+		std::wregex pattern(L"^[A-Z\u0080-\uFFFF]{3}[0-9]{5}[A-Z\u0080-\uFFFF]{2}-[AQ]$", std::regex_constants::icase);
+		if (!std::regex_match(id, pattern)) {
 			throw std::invalid_argument("Invalid owner ID format");
 		}
 		this->id = id;
 	}
-	std::string get() const { return id; };
+	std::wstring get() const { return id; };
 private:
-	std::string id;
+	std::wstring id;
 };
 
 struct ShoppingCart::ShoppingCartData {
@@ -124,7 +124,7 @@ struct ShoppingCart::ShoppingCartData {
 	std::map<ItemName, Quantity> items;
 };
 
-ShoppingCart::ShoppingCart(const std::string& owner_id) {
+ShoppingCart::ShoppingCart(const std::wstring& owner_id) {
 	data = std::make_unique<ShoppingCartData>(OwnerID(owner_id), CartID(), std::map<ItemName, Quantity>());
 }
 ShoppingCart::~ShoppingCart() = default;
@@ -142,7 +142,7 @@ ShoppingCart& ShoppingCart::operator=(const ShoppingCart& other) {
 
 ShoppingCart& ShoppingCart::operator=(ShoppingCart&& other) noexcept = default;
 
-std::string ShoppingCart::getId() const { return data->owner_id.get(); }
+std::wstring ShoppingCart::getId() const { return data->owner_id.get(); }
 std::string ShoppingCart::getCartId() const { return data->cart_id.get(); }
 std::map <std::string, int> ShoppingCart::getItems() const {
 		std::map <std::string, int> copied_items;
