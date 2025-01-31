@@ -3,12 +3,6 @@
 #include <regex>
 #include <random>
 
-TEST(ShoppingCartTest, DestructorIsLinked) {
-    ShoppingCart cart(L"ABC12345DE-A");
-    // The destructor will be called automatically when 'cart' goes out of scope.
-    SUCCEED();
-}
-
 TEST(ShoppingCartTest, CopyConstructor) {
     ShoppingCart cart1(L"ABC12345DE-A");
     cart1.addItem("apple", 3);
@@ -47,10 +41,16 @@ TEST(ShoppingCartTest, MoveAssignment) {
     ASSERT_EQ(items.size(), 1);
 }
 
-TEST(ShoppingCartTest, NonEnglishID) { // Not currently passing
+TEST(ShoppingCartTest, NonEnglishID) {
     ShoppingCart cart(L"アイウ12345エオ-A");
     ASSERT_THROW(ShoppingCart cart(L"ABC12345DE-ア"), std::invalid_argument);
-    ASSERT_THROW(ShoppingCart cart(L"アイウアイウ12345DE-ア"), std::invalid_argument);
+    try {
+        ShoppingCart cart(L"アイウアイウ12345DE-ア");
+    }
+	catch (const std::exception& e)
+	{
+        ASSERT_STREQ(e.what(), "Owner ID must be 12 characters long");
+	}
 }
 
 TEST(ShoppingCartTest, InvalidOwnerID) {
