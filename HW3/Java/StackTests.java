@@ -86,4 +86,14 @@ public class StackTests {
         });
         assertTrue(stack.isFull());
     }
+
+    @Test
+    public void testStringSize() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            stack.push("");
+        });
+        assertThrows(IllegalArgumentException.class, () -> {
+            stack.push("looooooooooooooooong string");
+        });
+    }
 }

@@ -7,7 +7,33 @@ public class Stack {
     private String[] values;
     private int topIndex;
 
-    
+    /**
+     * Utility class for validating stack operations.
+     */
+    static class Validate {
+        public static void isNotEmpty(Stack stack) {
+            if (stack.isEmpty()) {
+                throw new EmptyStackException();
+            }
+        }
+        public static void isNotFull(Stack stack) {
+            if (stack.isFull()) {
+                throw new IllegalStateException("Stack has reached maximum capacity");
+            }
+        }
+        public static void isValidString(String value) {
+            if (value == null) {
+                throw new IllegalArgumentException("Value cannot be null");
+            }
+            if (value.length() == 0) {
+                throw new IllegalArgumentException("Value cannot be empty");
+            }
+            if (value.length() > 16) {
+                throw new IllegalArgumentException("Value cannot be longer than 16 characters");
+            }
+        }
+    }
+
     /**
      * Constructs a new Stack with an initial capacity defined by STARTING_CAPACITY.
      * Initializes the internal array to hold the stack values and sets the initial size to 0.
@@ -15,7 +41,6 @@ public class Stack {
     public Stack() {
         values = new String[STARTING_CAPACITY];
         topIndex = 0;
-        
     }
 
     /**
@@ -25,6 +50,7 @@ public class Stack {
      * @param value the string value to be pushed onto the stack
      */
     public void push(String value) {
+        Validate.isValidString(value);
         if (topIndex == values.length) {
             expandCapacity();
         }
@@ -38,9 +64,7 @@ public class Stack {
      * @throws IllegalStateException if the stack is empty
      */
     public String pop() {
-        if (isEmpty()) {
-            throw new EmptyStackException();
-        }
+        Validate.isNotEmpty(this);
         String value = values[--topIndex];
         values[topIndex] = null;
         return value;
@@ -53,28 +77,8 @@ public class Stack {
      * @throws EmptyStackException if the stack is empty
      */
     public String peek() {
-        if (isEmpty()) {
-            throw new EmptyStackException();
-        }
+        Validate.isNotEmpty(this);
         return values[topIndex - 1];
-    }
-
-    /**
-     * Checks if the stack is full to the maximum capacity.
-     *
-     * @return true if the stack is full, false otherwise.
-     */
-    public boolean isFull() {
-        return size() >= MAXIMUM_CAPACITY;
-    }
-
-    /**
-     * Checks if the stack is empty.
-     *
-     * @return true if the stack is empty, false otherwise.
-     */
-    public boolean isEmpty() {
-        return topIndex == 0;
     }
 
     /**
@@ -85,15 +89,25 @@ public class Stack {
      * @throws IllegalStateException if the stack has reached its maximum capacity.
      */
     private void expandCapacity() {
-        if (isFull()) {
-            throw new IllegalStateException("Stack has reached maximum capacity");
-        }
+        Validate.isNotFull(this);
         values = Arrays.copyOf(values, values.length * 2);
     }
 
     /**
-     * Returns the number of elements in the stack.
-     *
+     * @return true if the stack is full, false otherwise.
+     */
+    public boolean isFull() {
+        return size() >= MAXIMUM_CAPACITY;
+    }
+
+    /**
+     * @return true if the stack is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return topIndex == 0;
+    }
+
+    /**
      * @return the size of the stack
      */
     public int size() {
