@@ -1,6 +1,29 @@
 #include "stack.h"
 #include <stdexcept>
 
+#define MAXIMUM_STRING_LENGTH 16
+
+namespace Validate {
+	static void isValidString(const std::string& str) {
+		if (str.empty()) {
+			throw std::invalid_argument("String cannot be empty");
+		}
+		if (str.length() > MAXIMUM_STRING_LENGTH) {
+			throw std::invalid_argument("String cannot be too long");
+		}
+	}
+	static void isNotEmpty(const Stack& stack) {
+		if (stack.isEmpty()) {
+			throw std::underflow_error("Stack is empty");
+		}
+	}
+	static void isNotFull(const Stack& stack) {
+		if (stack.isFull()) {
+			throw std::overflow_error("Stack is full");
+		}
+	}
+}
+
 Stack::Stack() : _size(0), _capacity(STARTING_CAPACITY) {
 	values = new std::unique_ptr<std::string>[_capacity];
 }
@@ -51,10 +74,9 @@ bool Stack::isEmpty() const {
 }
 
 void Stack::push(std::string item) {
+	Validate::isValidString(item);
 	if (isAtCapacity()) {
-		if (isFull()) {
-			throw std::overflow_error("Stack is full. Cannot push more items.");
-		}
+		Validate::isNotFull(*this);
 		_capacity *= 2;
 		auto new_values = new std::unique_ptr<std::string>[_capacity];
 		for (unsigned int i = 0; i < _size; ++i) {
@@ -67,17 +89,13 @@ void Stack::push(std::string item) {
 }
 
 std::unique_ptr<std::string> Stack::pop() {
-	if (isEmpty()) {
-		throw std::underflow_error("Stack is empty. Cannot pop items.");
-	}
+	Validate::isNotEmpty(*this);
 	std::unique_ptr<std::string> item = std::move(values[--_size]);
 	values[_size].reset();
 	return item;
 }
 
 std::unique_ptr<std::string> Stack::peek() {
-	if (isEmpty()) {
-		throw std::underflow_error("Stack is empty. Cannot peek items.");
-	}
+	Validate::isNotEmpty(*this);
 	return std::make_unique<std::string>(*values[_size - 1]);
 }

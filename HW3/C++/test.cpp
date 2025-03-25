@@ -36,7 +36,7 @@ static void testStackPop() {
         stack.pop();
     }
     catch (const std::underflow_error& e) {
-        assert(std::string(e.what()) == "Stack is empty. Cannot pop items.");
+        assert(std::string(e.what()) == "Stack is empty");
     }
     std::cout << "testStackPop passed." << std::endl;
 }
@@ -62,15 +62,35 @@ static void testStackExpandable() {
 		stack.push("overflow");
 	}
 	catch (const std::overflow_error& e) {
-		assert(std::string(e.what()) == "Stack is full. Cannot push more items.");
+		assert(std::string(e.what()) == "Stack is full");
 	}
 	std::cout << "testStackExpandable passed." << std::endl;
 }
 
-void main() {
+static void testStringLength() {
+    Stack stack;
+    stack.push("test");
+    try {
+        stack.push("");
+    }
+    catch (const std::invalid_argument& e) {
+        assert(std::string(e.what()) == "String cannot be empty");
+    }
+    try {
+        stack.push("looooooooooooooong string");
+    }
+    catch (const std::invalid_argument& e) {
+        assert(std::string(e.what()) == "String cannot be too long");
+    }
+    std::cout << "testStringLength passed." << std::endl;
+}
+
+int main() {
     testStackCreation();
     testStackPush();
     testStackPop();
     testStackIsFull();
+    testStackExpandable();
+    testStringLength();
     std::cout << "All tests passed." << std::endl;
 }
