@@ -1,0 +1,13 @@
+<h1>Make a Transfer</h1>
+
+<form method="POST" action="/transfer">
+  <pre>
+  <label for="from">From   </label> <input id="from" name="from" placeholder="Enter source account" />
+  <label for="to">To     </label> <input id="to" name="to" placeholder="Enter destination account" />
+  <label for="amount">Amount </label> <input id="amount" name="amount" placeholder="Enter transfer amount" />
+         <input type="submit" value="Transfer">
+  </pre>
+  <!-- WARNING WARNING THERE IS A CSRF VULNERABILITY HERE!!! -->
+  <!-- WE WILL BE FIXING IT LATER.                           -->
+</form>
+<p><a href="/dashboard">Back to Dashboard</a></p>
