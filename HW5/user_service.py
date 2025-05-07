@@ -1,11 +1,22 @@
+from functools import wraps
 import sqlite3
 import datetime
-import time
-from passlib.hash import pbkdf2_sha256  # type: ignore
-from flask import request, g  # type: ignore
-import jwt  # type: ignore
+from passlib.hash import pbkdf2_sha256
+from flask import render_template, request, g
+from dotenv import load_dotenv
+import jwt
+import os
 
-SECRET = 'bfg28y7efg238re7r6t32gfo23vfy7237yibdyo238do2v3'  # DO NOT DO THIS!!!
+load_dotenv()
+SECRET = os.getenv('SECRET')
+
+def login_required(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not logged_in():
+            return render_template("login.html")
+        return func(*args, **kwargs)
+    return decorated_function
 
 
 def get_user_with_credentials(email, password):
