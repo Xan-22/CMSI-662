@@ -1,16 +1,80 @@
-<h1>Make a Transfer</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a Transfer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    .flash-message {
+      color: green;
+      font-weight: bold;
+    }
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    input[type="submit"] {
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    a {
+      color: black;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+    }
+    a:hover {
+      text-decoration: underline;
+      color: blue;
+    }
+  </style>
+</head>
+<body>
+  <h1>Make a Transfer</h1>
 
-{% if message %}
-  <p class="flash-message">{{ message }}</p>
-{% endif %}
-<form method="POST" action="/transfer">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-  <pre>
-  <label for="from">From   </label> <input id="from" name="from" placeholder="Enter source account" />
-  <label for="to">To     </label> <input id="to" name="to" placeholder="Enter destination account" />
-  <label for="amount">Amount </label> <input id="amount" name="amount" placeholder="Enter transfer amount" />
-         <input type="submit" value="Transfer">
-         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-  </pre>
-</form>
-<p><a href="/dashboard">Back to Dashboard</a></p>
+  {% if message %}
+    <p class="flash-message">{{ message }}</p>
+  {% endif %}
+  <form method="POST" action="/transfer">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <label for="from">From</label>
+    <input id="from" name="from" placeholder="Enter source account" />
+    <label for="to">To</label>
+    <input id="to" name="to" placeholder="Enter destination account" />
+    <label for="amount">Amount</label>
+    <input id="amount" name="amount" placeholder="Enter transfer amount" />
+    <input type="submit" value="Transfer">
+  </form>
+  <p><a href="/dashboard">Back to Dashboard</a></p>
+</body>
+</html>

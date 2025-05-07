@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .account-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .account-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select an Account</h1>
+    <div id="account-buttons">
+        <!-- Buttons will be dynamically inserted here -->
+    </div>
+
+    <script>
+        const accountNumbers = JSON.parse('{{ account_numbers|tojson|safe }}') || [];
+        const container = document.getElementById('account-buttons');
+
+        accountNumbers.forEach(account => {
+            const button = document.createElement('a');
+            button.textContent = `Account ${account}`;
+            button.href = `/details?account=${account}`;
+            button.className = 'account-button';
+            container.appendChild(button);
+        });
+    </script>
+</body>
+</html>

@@ -1,6 +1,61 @@
-
-<h1>What would you like to do today?</h1>
-<p><a href="/logout">Logout</a></p>
-<p><a href="/details?account=100">Savings account details</a></p>
-<p><a href="/details?account=998">Checking account details</a></p>
-<p><a href="/transfer">Transfer</a></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: black;
+        }
+        a {
+            color: black;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+        p {
+            margin: 10px 0;
+        }
+        .flashes {
+            color: green;
+            font-weight: bold;
+            list-style-type: none;
+            padding: 0;
+        }
+        .flashes li {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </ul> {% endwith %}
+    <h1>What would you like to do today?</h1>
+    <p><a href="/logout">Logout</a></p>
+    <p><a href="/accounts">Account details</a></p>
+    <p><a href="/transfer">Transfer</a></p>
+</body>
+</html>
